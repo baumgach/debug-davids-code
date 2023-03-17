@@ -147,7 +147,7 @@ class MIMIC_Dataset(Dataset):
         img_path = os.path.join(self.imgpath, "p" + subjectid[:2], "p" + subjectid, "s" + studyid, dicom_id + ".jpg")
         image = cv2.imread(img_path, 0)
         image = Image.fromarray(image)
-        image = self.transforms(image)
+        image = self.transform(image)
         image = np.array(image)
         image = cv2.cvtColor(image, cv2.COLOR_GRAY2RGB)
 
