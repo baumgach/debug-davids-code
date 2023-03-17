@@ -62,7 +62,8 @@ class MIMIC_Dataset(Dataset):
                  flat_dir=True,
                  seed=0,
                  unique_patients=True,
-                 image_size=320
+                 image_size=320,
+                 return_path=False,
                  ):
 
         super(MIMIC_Dataset, self).__init__()
@@ -85,6 +86,7 @@ class MIMIC_Dataset(Dataset):
         self.pathologies = sorted(self.pathologies)
 
         self.image_size = image_size
+        self.return_path = return_path
         self.imgpath = imgpath
         self.transform = transform
         self.data_aug = data_aug
@@ -164,4 +166,6 @@ class MIMIC_Dataset(Dataset):
         image = image.transpose((2, 0, 1)).astype(np.float32)
         label = self.labels[idx]
 
+        if self.return_path:
+            return image, label, img_path
         return image, label
