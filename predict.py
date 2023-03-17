@@ -6,8 +6,10 @@ from mychexpert import CheXpert
 from mymimic import MIMIC_Dataset
 import matplotlib.pyplot as plt
 
-def make_mimic_data():
+# Make datasets
 
+
+def make_mimic_data():
     imgpath = "/mnt/qb/baumgartner/rawdata/MIMIC-CXR/physionet.org/files/mimic-cxr-jpg/2.0.0/files"
     csvpath = "/mnt/qb/baumgartner/rawdata/MIMIC-CXR/physionet.org/files/mimic-cxr-jpg/2.0.0/mimic-cxr-2.0.0-chexpert.csv.gz"
     metacsvpath = "/mnt/qb/baumgartner/rawdata/MIMIC-CXR/physionet.org/files/mimic-cxr-jpg/2.0.0/mimic-cxr-2.0.0-metadata.csv.gz"
@@ -19,14 +21,14 @@ def make_mimic_data():
         metacsvpath=metacsvpath,
         views=views,
         unique_patients=True,
-        image_size=224, 
+        image_size=224,
         return_path=True,
     )
-    
+
     return mimic_data
 
+
 def make_chexpert_data():
-    
     data_root = "/mnt/qb/baumgartner/rawdata/CheXpert/CheXpert-v1.0-small/"
     LABELS = [
         "Cardiomegaly",
@@ -37,25 +39,38 @@ def make_chexpert_data():
         "Pneumothorax",
         "Pleural Effusion",
     ]
-    
+
     chexpert_data = CheXpert(
-        csv_path=data_root+'valid.csv',  
-        image_root_path=data_root, 
-        use_upsampling=False, 
-        use_frontal=True, 
-        image_size=224, 
-        mode='valid', 
-        class_index=-1, 
-        train_cols=LABELS, 
-        verbose=False, 
-        shuffle=False, 
-        return_path=True
+        csv_path=data_root + "valid.csv",
+        image_root_path=data_root,
+        use_upsampling=False,
+        use_frontal=True,
+        image_size=224,
+        mode="valid",
+        class_index=-1,
+        train_cols=LABELS,
+        verbose=False,
+        shuffle=False,
+        return_path=True,
     )
-    
+
     return chexpert_data
+
 
 mimic_data = make_mimic_data()
 chexpert_data = make_chexpert_data()
+
+mimic_loader = torch.utils.data.DataLoader(
+    mimic_data, batch_size=1, num_workers=0, shuffle=False
+)
+mimic_iter = iter(mimic_loader)
+
+chexpert_loader = torch.utils.data.DataLoader(
+    chexpert_data, batch_size=1, num_workers=0, shuffle=False
+)
+chexpert_iter = iter(chexpert_loader)
+
+# Load model
 
 model_paths = [
     "/mnt/qb/work/baumgartner/djakobs46/replicate-chexpert-resultsaucm_multi_label_pretrained_model123.pth",
@@ -73,38 +88,30 @@ model.to(device)
 model.load_state_dict(torch.load(model_paths[0], map_location=device))
 model.eval()
 
-mimic_loader = torch.utils.data.DataLoader(
-    mimic_data, batch_size=1, num_workers=0, shuffle=False
-)
-mimic_iter = iter(mimic_loader)
-
-chexpert_loader = torch.utils.data.DataLoader(
-    chexpert_data, batch_size=1, num_workers=0, shuffle=False
-)
-chexpert_iter = iter(chexpert_loader)
+# Get data and predict
 
 xm, ym, _ = next(mimic_iter)
 xc, yc, _ = next(chexpert_iter)
 
-print('MIMIC', xm.shape, xm.min(), xm.max())
-print('CheXpert', xc.shape, xc.min(), xc.max())
+print("MIMIC", xm.shape, xm.min(), xm.max())
+print("CheXpert", xc.shape, xc.min(), xc.max())
 
 plt.subplot(121)
 plt.imshow(xc.squeeze()[0])
-plt.title('CheXpert')
+plt.title("CheXpert")
 plt.subplot(122)
 plt.imshow(xm.squeeze()[0])
-plt.title('MIMIC')
+plt.title("MIMIC")
 plt.show()
 
 xm, xc = xm.cuda(), xc.cuda()
 
-print('MIMIC')
+print("MIMIC")
 y = model(xm)
 print(torch.sigmoid(y))
 print(ym)
-print('--')
-print('Chexpert')
+print("--")
+print("Chexpert")
 y = model(xc)
 print(torch.sigmoid(y))
 print(yc)
