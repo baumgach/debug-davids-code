@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 
 # Make datasets
 
-
 def make_mimic_data():
     imgpath = "/mnt/qb/baumgartner/rawdata/MIMIC-CXR/physionet.org/files/mimic-cxr-jpg/2.0.0/files"
     csvpath = "/mnt/qb/baumgartner/rawdata/MIMIC-CXR/physionet.org/files/mimic-cxr-jpg/2.0.0/mimic-cxr-2.0.0-chexpert.csv.gz"
