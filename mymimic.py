@@ -138,9 +138,6 @@ class MIMIC_Dataset(Dataset):
         return len(self.labels)
 
     def __getitem__(self, idx):
-        sample = {}
-        sample["idx"] = idx
-        sample["lab"] = self.labels[idx]
 
         subjectid = str(self.csv.iloc[idx]["subject_id"])
         studyid = str(self.csv.iloc[idx]["study_id"])
@@ -165,9 +162,6 @@ class MIMIC_Dataset(Dataset):
         __std__ = np.array([[[0.229, 0.224, 0.225]]])
         image = (image - __mean__) / __std__
         image = image.transpose((2, 0, 1)).astype(np.float32)
-        if self.class_index != -1:  # multi-class mode
-            label = np.array(self._labels_list[idx]).reshape(-1).astype(np.float32)
-        else:
-            label = np.array(self._labels_list[idx]).reshape(-1).astype(np.float32)
+        label = self.labels[idx]
 
         return image, label
