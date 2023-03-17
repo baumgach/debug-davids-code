@@ -1,11 +1,46 @@
 import numpy as np
-import torch
-from torch.utils.data import Dataset
-import torchvision.transforms as tfs
+import torchxrayvision as xrv
 import cv2
 from PIL import Image
 import pandas as pd
 import os
+import collections
+
+class Dataset():
+    def __init__(self):
+        pass
+
+    def totals(self):
+        counts = [dict(collections.Counter(items[~np.isnan(items)]).most_common()) for items in self.labels.T]
+        return dict(zip(self.pathologies, counts))
+
+    def __repr__(self):
+        if xrv.utils.in_notebook():
+            pprint.pprint(self.totals())
+        return self.string()
+
+    def check_paths_exist(self):
+        if not os.path.isdir(self.imgpath):
+            raise Exception("imgpath must be a directory")
+        if not os.path.isfile(self.csvpath):
+            raise Exception("csvpath must be a file")
+
+    def limit_to_selected_views(self, views):
+        """This function is called by subclasses to filter the
+        images by view based on the values in .csv['view']
+        """
+        if type(views) is not list:
+            views = [views]
+        if '*' in views:
+            # if you have the wildcard, the rest are irrelevant
+            views = ["*"]
+        self.views = views
+
+        # missing data is unknown
+        self.csv.view.fillna("UNKNOWN", inplace=True)
+
+        if "*" not in views:
+            self.csv = self.csv[self.csv["view"].isin(self.views)]  # Select the view
 
 class MIMIC_Dataset(Dataset):
     """MIMIC-CXR Dataset
